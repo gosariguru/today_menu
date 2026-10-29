@@ -76,6 +76,7 @@
     let favoriteReady = false;
     let favoriteLoading = false;
     let favoriteSaving = false;
+    let favoriteLoadError = '';
     let favoriteVersion = 0;
     let favoriteRequest = 0;
     let currentRecipe = null;
@@ -94,8 +95,34 @@
     function updateFavoriteButton() {
       const saved = currentRecipe && favoriteIds.has(String(currentRecipe.id));
       favoriteButton.setAttribute('aria-pressed', String(Boolean(saved)));
-      favoriteButton.textContent = saved ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기';
-      favoriteButton.disabled = favoriteSaving || Boolean(favoriteUser && (favoriteLoading || !favoriteReady));
+      favoriteButton.textContent = favoriteSaving ? '저장 상태 변경 중…'
+        : favoriteLoading ? '즐겨찾기 확인 중…'
+        : favoriteUser && !favoriteReady ? '☆ 즐겨찾기 다시 확인'
+        : saved ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기';
+      favoriteButton.disabled = favoriteSaving || favoriteLoading;
+      favoriteButton.setAttribute('aria-busy', String(favoriteSaving || favoriteLoading));
+    }
+    function favoriteError(error) {
+      if (error?.code === 'FAVORITE_TIMEOUT') return '즐겨찾기 서버의 응답이 늦어지고 있어요. 버튼을 눌러 다시 확인해 주세요.';
+      if (error?.code === '42501') return '즐겨찾기 테이블 접근 권한이 없어요. Supabase의 favorites 테이블 RLS 정책과 조회·저장·삭제 권한을 확인해 주세요.';
+      if (['42P01', 'PGRST205'].includes(error?.code)) return 'Supabase에서 favorites 테이블을 찾을 수 없어요. 테이블 이름과 공개 스키마 설정을 확인해 주세요.';
+      const detail = error?.message ? ` (${error.message})` : '';
+      return `즐겨찾기 요청에 실패했어요. 버튼을 눌러 다시 확인해 주세요.${detail}`;
+    }
+    async function favoriteQuery(buildQuery) {
+      const controller = new AbortController();
+      let timer;
+      const timeout = new Promise((_, reject) => {
+        timer = setTimeout(() => {
+          const error = new Error('Favorite request timed out');
+          error.code = 'FAVORITE_TIMEOUT';
+          reject(error);
+          controller.abort();
+        }, 12000);
+      });
+      try {
+        return await Promise.race([buildQuery(controller.signal), timeout]);
+      } finally { clearTimeout(timer); }
     }
     function renderFavorites() {
       if (!favoritesVisible) return;
@@ -105,7 +132,7 @@
       grid.setAttribute('aria-busy', String(favoriteLoading));
       if (!favoriteUser) { status.textContent = '로그인하면 즐겨찾기를 저장할 수 있어요'; return; }
       if (favoriteLoading) { status.textContent = '즐겨찾기를 불러오는 중이에요…'; return; }
-      if (!favoriteReady) { status.textContent = '즐겨찾기를 불러오지 못했어요. 상단의 내 즐겨찾기를 눌러 다시 시도해 주세요.'; return; }
+      if (!favoriteReady) { status.textContent = favoriteLoadError || '즐겨찾기를 불러오지 못했어요. 상단의 내 즐겨찾기를 눌러 다시 시도해 주세요.'; return; }
       if (!loaded) { status.textContent = '레시피 데이터를 불러오는 중이에요…'; return; }
       const matches = data.recipes.filter(recipe => favoriteIds.has(String(recipe.id)));
       status.textContent = matches.length ? `저장한 메뉴 ${matches.length}개` : '아직 저장한 레시피가 없어요. 메뉴 상세에서 ☆을 눌러보세요.';
@@ -117,10 +144,11 @@
       const version = favoriteVersion;
       const request = ++favoriteRequest;
       favoriteLoading = true;
+      favoriteLoadError = '';
       updateFavoriteButton();
       renderFavorites();
       try {
-        const { data: rows, error } = await favoriteClient.from('favorites').select('recipe_id').eq('user_id', userId);
+        const { data: rows, error } = await favoriteQuery(signal => favoriteClient.from('favorites').select('recipe_id').eq('user_id', userId).abortSignal(signal));
         if (error) throw error;
         if (version !== favoriteVersion || request !== favoriteRequest) return;
         favoriteIds = new Set(rows.map(row => String(row.recipe_id)));
@@ -128,7 +156,8 @@
       } catch (error) {
         if (version !== favoriteVersion || request !== favoriteRequest) return;
         favoriteReady = false;
-        favoriteMessage('즐겨찾기를 불러오지 못했어요. 상단의 내 즐겨찾기를 눌러 다시 시도해 주세요.', true);
+        favoriteLoadError = favoriteError(error);
+        favoriteMessage(favoriteLoadError, true);
       } finally {
         if (version === favoriteVersion && request === favoriteRequest) {
           favoriteLoading = false;
@@ -148,6 +177,7 @@
       favoriteReady = false;
       favoriteLoading = Boolean(nextUser);
       favoriteSaving = false;
+      favoriteLoadError = '';
       favoriteMessage('');
       updateFavoriteButton();
       renderFavorites();
@@ -168,7 +198,13 @@
     });
     favoriteButton.addEventListener('click', async () => {
       if (!favoriteUser) { favoriteMessage('로그인하면 즐겨찾기를 저장할 수 있어요'); return; }
-      if (!currentRecipe || currentRecipe.id == null || !favoriteReady || favoriteLoading || favoriteSaving) return;
+      if (!currentRecipe || currentRecipe.id == null || favoriteLoading || favoriteSaving) return;
+      if (!favoriteReady) {
+        favoriteMessage('즐겨찾기 상태를 다시 확인하고 있어요.');
+        await loadFavorites();
+        if (favoriteReady) favoriteMessage('즐겨찾기 상태를 확인했어요. 버튼을 눌러 저장하거나 해제해 주세요.');
+        return;
+      }
       const recipe = currentRecipe;
       const version = favoriteVersion;
       const userId = favoriteUser.id;
@@ -178,9 +214,9 @@
       updateFavoriteButton();
       favoriteMessage('');
       try {
-        const result = saved
-          ? await favoriteClient.from('favorites').delete().eq('user_id', userId).eq('recipe_id', recipe.id).select('recipe_id')
-          : await favoriteClient.from('favorites').insert({ recipe_id: recipe.id }).select('recipe_id');
+        const result = await favoriteQuery(signal => saved
+          ? favoriteClient.from('favorites').delete().eq('user_id', userId).eq('recipe_id', recipe.id).select('recipe_id').abortSignal(signal)
+          : favoriteClient.from('favorites').insert({ recipe_id: recipe.id }).select('recipe_id').abortSignal(signal));
         if (version !== favoriteVersion) return;
         if (result.error) throw result.error;
         if (!result.data?.length) throw new Error('Favorite change not confirmed');
@@ -192,8 +228,11 @@
         if (error.code === '23505') {
           favoriteSaving = false;
           await loadFavorites();
-        } else if (currentRecipe === recipe) {
-          favoriteMessage('즐겨찾기를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.', true);
+        } else {
+          favoriteReady = false;
+          favoriteLoadError = favoriteError(error);
+          if (currentRecipe === recipe) favoriteMessage(favoriteLoadError, true);
+          renderFavorites();
         }
       } finally {
         if (version === favoriteVersion) { favoriteSaving = false; updateFavoriteButton(); }
@@ -226,7 +265,7 @@
     let lastCard = null;
     function openRecipe(recipe, card) {
       currentRecipe = recipe;
-      favoriteMessage('');
+      favoriteMessage(favoriteLoadError, Boolean(favoriteLoadError));
       updateFavoriteButton();
       lastCard = card;
       document.querySelector('#detail-name').textContent = recipe.name || '이름 없는 메뉴';
