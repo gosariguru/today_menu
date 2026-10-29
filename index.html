@@ -12,6 +12,7 @@
     @media(min-width:1000px){.hero-art{margin-right:30px}}@media(max-width:700px){header{padding:21px 20px}.header-note{display:none}main{padding:24px 20px 45px}.hero{padding:30px 26px;min-height:250px}.hero-art{position:absolute;right:-65px;bottom:-25px;width:185px;opacity:.22}.hero-copy{z-index:1}.intro{max-width:260px;font-size:13px}.month-bar{align-items:start}.hint{max-width:120px;text-align:right;line-height:1.6}.month-label{gap:9px;font-size:12px}.ingredients-panel{padding:22px 20px}.ingredient{padding:10px 17px}.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.card-body{padding:15px}.card h3{font-size:16px}.card-meta{flex-wrap:wrap;gap:6px}footer{margin:0 20px;flex-direction:column}h2{font-size:21px}}@media(max-width:400px){.grid{grid-template-columns:1fr}}
     .card{cursor:pointer}.card:focus-visible{outline:3px solid #b89148;outline-offset:4px}
     body.modal-open{overflow:hidden}.recipe-dialog{width:min(720px,calc(100% - 32px));max-height:90dvh;padding:0;border:0;border-radius:22px;background:var(--paper);color:var(--ink);overscroll-behavior:contain}.recipe-dialog::backdrop{background:rgb(22 36 27 / .65)}.dialog-top{position:sticky;top:0;z-index:1;display:flex;justify-content:flex-end;padding:10px 14px;background:var(--paper);border-bottom:1px solid var(--line)}.dialog-x{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:white;color:var(--ink);font-size:26px;line-height:1}.detail-photo{aspect-ratio:1.6}.detail-photo img{object-fit:contain}.detail-body{padding:28px 32px}.detail-body h2{font-size:28px;line-height:1.4;margin:0 0 18px}.detail-facts{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:14px;padding-bottom:22px;border-bottom:1px solid var(--line)}.detail-facts dt{font-size:12px;color:var(--muted);margin-bottom:6px}.detail-facts dd{margin:0;font-weight:600}.detail-body h3{font-size:17px;margin:26px 0 12px}.detail-ingredients{white-space:pre-wrap;line-height:1.85;font-size:14px;margin:0}.detail-steps{padding-left:24px;font-size:14px;line-height:1.85}.detail-steps li{padding-left:5px;margin-bottom:14px;white-space:pre-wrap}.detail-steps li::marker{color:var(--green);font-weight:700}.detail-tip{background:#eaf0df;border-radius:12px;padding:17px 20px;font-size:14px;line-height:1.8;white-space:pre-wrap}.dialog-close{width:100%;margin-top:22px;border:0;border-radius:12px;background:var(--green);color:white;padding:14px;font-weight:700}@media(max-width:700px){.detail-body{padding:23px 22px}.detail-body h2{font-size:24px}}
+    .random-panel{margin-top:32px;padding:24px 26px;border:1px solid var(--line);border-radius:18px;background:#eaf0df;display:flex;align-items:center;justify-content:space-between;gap:20px}.random-panel h2{font-size:20px}.random-panel p{font-size:13px;color:#63715e;line-height:1.7;margin:8px 0 0}.random-button{border:0;border-radius:12px;background:var(--green);color:white;padding:14px 20px;font-weight:700;white-space:nowrap}.random-button:hover{background:#244332}.random-button:disabled{opacity:.55;cursor:wait}#random-recipes{margin-top:22px}@media(max-width:700px){.random-panel{align-items:stretch;flex-direction:column;padding:22px}.random-button{width:100%}}
   </style>
 </head>
 <body>
@@ -27,6 +28,11 @@
     <section id="extra-section" aria-labelledby="extra-title" hidden>
       <div class="results-header"><div><h2 id="extra-title">추가 추천 메뉴</h2><p class="results-subtitle" id="extra-subtitle"></p></div><span class="count" id="extra-count"></span></div>
       <div class="grid" id="extra-recipes" aria-live="polite"></div>
+    </section>
+    <section aria-labelledby="random-title">
+      <div class="random-panel"><div><h2 id="random-title">오늘은 새로운 메뉴 어때요?</h2><p>월과 재료에 관계없이, 전체 레시피에서 골라드려요.</p></div><button type="button" id="random-button" class="random-button" disabled>랜덤 메뉴 10개 추천</button></div>
+      <p id="random-status" class="results-subtitle" role="status"></p>
+      <div id="random-recipes" class="grid"></div>
     </section>
   </main>
   <footer><span class="footer-brand">오늘 뭐먹지? · SEASONAL TABLE</span><span>제철 재료로 채우는 작고 건강한 일상</span></footer>
@@ -52,6 +58,29 @@
     let data = { seasonal: [], recipes: [] };
     let selectedIngredient = null;
     let loaded = false;
+    const randomButton = document.querySelector('#random-button');
+    function pickRandomRecipes(allRecipes, limit = 10) {
+      const seen = new Set();
+      const pool = allRecipes.filter(recipe => {
+        const key = recipe.id == null ? `name:${recipe.name}` : `id:${recipe.id}`;
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+      for (let i = pool.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [pool[i], pool[j]] = [pool[j], pool[i]];
+      }
+      return pool.slice(0, limit);
+    }
+    randomButton.addEventListener('click', () => {
+      if (!loaded) return;
+      const picks = pickRandomRecipes(data.recipes);
+      document.querySelector('#random-recipes').replaceChildren(...picks.map(createRecipeCard));
+      document.querySelector('#random-status').textContent = picks.length
+        ? `랜덤 메뉴 ${picks.length}개를 추천했어요. 버튼을 다시 누르면 새롭게 골라드려요.`
+        : '추천할 레시피가 없어요.';
+    });
     const dialog = document.querySelector('#recipe-dialog');
     let lastCard = null;
     function openRecipe(recipe, card) {
@@ -239,6 +268,7 @@
         data = result;
         loaded = true;
         renderMonth();
+        randomButton.disabled = false;
       } catch (error) {
         ingredients.textContent = '재료를 불러오지 못했어요.';
         count.textContent = '';
