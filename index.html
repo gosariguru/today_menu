@@ -14,12 +14,14 @@
     body.modal-open{overflow:hidden}.recipe-dialog{width:min(720px,calc(100% - 32px));max-height:90dvh;padding:0;border:0;border-radius:22px;background:var(--paper);color:var(--ink);overscroll-behavior:contain}.recipe-dialog::backdrop{background:rgb(22 36 27 / .65)}.dialog-top{position:sticky;top:0;z-index:1;display:flex;justify-content:flex-end;padding:10px 14px;background:var(--paper);border-bottom:1px solid var(--line)}.dialog-x{width:38px;height:38px;border:1px solid var(--line);border-radius:50%;background:white;color:var(--ink);font-size:26px;line-height:1}.detail-photo{aspect-ratio:1.6}.detail-photo img{object-fit:contain}.detail-body{padding:28px 32px}.detail-body h2{font-size:28px;line-height:1.4;margin:0 0 18px}.detail-facts{display:flex;flex-wrap:wrap;gap:12px 28px;font-size:14px;padding-bottom:22px;border-bottom:1px solid var(--line)}.detail-facts dt{font-size:12px;color:var(--muted);margin-bottom:6px}.detail-facts dd{margin:0;font-weight:600}.detail-body h3{font-size:17px;margin:26px 0 12px}.detail-ingredients{white-space:pre-wrap;line-height:1.85;font-size:14px;margin:0}.detail-steps{padding-left:24px;font-size:14px;line-height:1.85}.detail-steps li{padding-left:5px;margin-bottom:14px;white-space:pre-wrap}.detail-steps li::marker{color:var(--green);font-weight:700}.detail-tip{background:#eaf0df;border-radius:12px;padding:17px 20px;font-size:14px;line-height:1.8;white-space:pre-wrap}.dialog-close{width:100%;margin-top:22px;border:0;border-radius:12px;background:var(--green);color:white;padding:14px;font-weight:700}@media(max-width:700px){.detail-body{padding:23px 22px}.detail-body h2{font-size:24px}}
     .random-panel{margin-top:32px;padding:24px 26px;border:1px solid var(--line);border-radius:18px;background:#eaf0df;display:flex;align-items:center;justify-content:space-between;gap:20px}.random-panel h2{font-size:20px}.random-panel p{font-size:13px;color:#63715e;line-height:1.7;margin:8px 0 0}.random-button{border:0;border-radius:12px;background:var(--green);color:white;padding:14px 20px;font-weight:700;white-space:nowrap}.random-button:hover{background:#244332}.random-button:disabled{opacity:.55;cursor:wait}#random-recipes{margin-top:22px}@media(max-width:700px){.random-panel{align-items:stretch;flex-direction:column;padding:22px}.random-button{width:100%}}
     [hidden]{display:none!important}.header-actions{display:flex;align-items:center;justify-content:flex-end;gap:14px;min-width:0}.auth-button{border:1px solid var(--green);border-radius:10px;padding:10px 16px;background:white;color:var(--green);font-weight:700;white-space:nowrap}.auth-account{display:flex;align-items:center;gap:10px;min-width:0}.auth-email{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:13px}.auth-dialog{width:min(440px,calc(100% - 32px))}.auth-body{padding:24px 28px 28px}.auth-body h2{margin-bottom:10px}.auth-body>p{font-size:13px;line-height:1.7;color:var(--muted)}.auth-form label{display:block;font-size:13px;font-weight:600;margin:20px 0 8px}.auth-form input{width:100%;padding:13px;border:1px solid #cbd5c4;border-radius:10px;background:white;color:var(--ink);font:inherit}.auth-form input:focus-visible{outline:2px solid #6d8d4d;outline-offset:2px}.auth-switch{display:block;width:100%;border:0;background:transparent;color:var(--green);padding:18px 0 0;font-size:13px;text-decoration:underline;text-underline-offset:4px}.auth-message{font-size:13px;line-height:1.7;white-space:pre-wrap;color:var(--green)}.auth-message[data-error=true]{color:#a13b2d}.auth-message:empty{display:none}.auth-submit:disabled,.auth-switch:disabled{opacity:.55;cursor:wait}#auth-header-status{max-width:1128px;margin:12px auto;padding:0 20px}@media(max-width:700px){.brand{font-size:18px}.header-actions{max-width:55%;gap:8px}.auth-account{align-items:flex-end;flex-direction:column;gap:6px}.auth-email{max-width:155px;font-size:11px}.auth-button{padding:9px 12px;font-size:12px}.auth-body{padding:22px}}
+    .favorite-toggle{border:1px solid #c8d5b8;background:white;color:var(--green);border-radius:10px;padding:10px 15px;font-size:16px;font-weight:700;margin:0 0 10px}.favorite-toggle[aria-pressed=true]{color:#916820;background:#faf1d8;border-color:#e5ce91}.favorite-toggle:disabled{opacity:.55;cursor:wait}.favorites-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:24px}.header-actions{flex-wrap:wrap}.header-note{display:none}@media(max-width:700px){.header-actions{max-width:60%}.favorites-heading h2{font-size:22px}}
   </style>
 </head>
 <body>
   <header><div class="brand"><span class="brand-icon" aria-hidden="true">♧</span>오늘 뭐먹지?</div><div class="header-actions"><span class="header-note">계절을 담은 한 끼, 나를 위한 식탁</span><button type="button" class="auth-button" id="login-button">로그인</button><div id="auth-account" class="auth-account" hidden><span id="auth-email" class="auth-email"></span><button type="button" class="auth-button" id="logout-button">로그아웃</button></div></div></header>
   <p id="auth-header-status" class="auth-message" role="status"></p>
   <main>
+    <div id="browse-view">
     <section class="hero" aria-labelledby="hero-title">
       <div class="hero-copy"><p class="eyebrow">SEASONAL TABLE</p><h1 id="hero-title">제철의 맛으로,<br>오늘을 맛있게.</h1><p class="intro">지금 가장 맛있는 재료를 골라보세요.<br>계절에 어울리는 한 끼를 함께 찾아드릴게요.</p></div>
       <svg class="hero-art" viewBox="0 0 260 230" fill="none" aria-hidden="true"><ellipse cx="133" cy="126" rx="105" ry="98" fill="#dbe6c9"/><circle cx="133" cy="119" r="86" fill="#fdfdf5"/><circle cx="133" cy="119" r="69" stroke="#e4e8d8" stroke-width="2"/><path d="M70 117C42 91 71 65 90 85C95 47 125 60 120 85C154 61 166 94 144 110C169 129 140 148 119 134C117 162 90 167 85 141C59 151 44 127 70 117Z" fill="#6d8d4d"/><path d="M86 143L120 89M83 113L105 113M104 100L103 87" stroke="#a4bc77" stroke-width="3" stroke-linecap="round"/><path d="M127 126C143 97 182 101 190 130C198 163 171 181 152 176C129 174 116 151 127 126Z" fill="#dba057"/><path d="M155 111C159 99 164 96 174 98" stroke="#70844b" stroke-width="8" stroke-linecap="round"/><path d="M151 121C139 140 141 156 151 168M164 121C177 140 174 157 164 170" stroke="#c58a44" stroke-width="2"/><circle cx="98" cy="162" r="18" fill="#ac6546"/><circle cx="98" cy="162" r="10" fill="#f2d5a7"/><circle cx="98" cy="162" r="3" fill="#ac6546"/><path d="M205 55L220 40M211 67L232 64M197 45L200 26" stroke="#a7b785" stroke-width="3" stroke-linecap="round"/></svg>
@@ -36,6 +38,12 @@
       <p id="random-status" class="results-subtitle" role="status"></p>
       <div id="random-recipes" class="grid"></div>
     </section>
+    </div>
+    <section id="favorites-view" aria-labelledby="favorites-title" hidden>
+      <div class="favorites-heading"><div><h2 id="favorites-title">내 즐겨찾기</h2><p class="results-subtitle">저장한 레시피를 모아봤어요.</p></div><button type="button" class="auth-button" id="browse-button">전체 메뉴 보기</button></div>
+      <p id="favorites-status" class="auth-message" role="status"></p>
+      <div id="favorites-recipes" class="grid" aria-busy="false"></div>
+    </section>
   </main>
   <footer><span class="footer-brand">오늘 뭐먹지? · SEASONAL TABLE</span><span>제철 재료로 채우는 작고 건강한 일상</span></footer>
   <dialog id="recipe-dialog" class="recipe-dialog" aria-labelledby="detail-name">
@@ -43,6 +51,8 @@
     <div id="detail-photo" class="photo detail-photo"></div>
     <div class="detail-body">
       <h2 id="detail-name"></h2>
+      <button type="button" id="favorite-toggle" class="favorite-toggle" aria-pressed="false">☆ 즐겨찾기</button>
+      <p id="favorite-message" class="auth-message" role="status"></p>
       <dl class="detail-facts"><div><dt>요리종류</dt><dd id="detail-category"></dd></div><div><dt>조리방법</dt><dd id="detail-method"></dd></div></dl>
       <h3>재료</h3><p id="detail-ingredients" class="detail-ingredients"></p>
       <h3>조리순서</h3><ol id="detail-steps" class="detail-steps"></ol>
@@ -60,6 +70,135 @@
     let data = { seasonal: [], recipes: [] };
     let selectedIngredient = null;
     let loaded = false;
+    let favoriteClient = null;
+    let favoriteUser = null;
+    let favoriteIds = new Set();
+    let favoriteReady = false;
+    let favoriteLoading = false;
+    let favoriteSaving = false;
+    let favoriteVersion = 0;
+    let favoriteRequest = 0;
+    let currentRecipe = null;
+    let favoritesVisible = false;
+    const favoriteButton = document.querySelector('#favorite-toggle');
+    const favoritesButton = document.createElement('button');
+    favoritesButton.type = 'button';
+    favoritesButton.className = 'auth-button';
+    favoritesButton.textContent = '내 즐겨찾기';
+    document.querySelector('.header-actions').prepend(favoritesButton);
+    function favoriteMessage(text, error = false) {
+      const target = document.querySelector('#favorite-message');
+      target.textContent = text;
+      target.dataset.error = String(error);
+    }
+    function updateFavoriteButton() {
+      const saved = currentRecipe && favoriteIds.has(String(currentRecipe.id));
+      favoriteButton.setAttribute('aria-pressed', String(Boolean(saved)));
+      favoriteButton.textContent = saved ? '★ 즐겨찾기 해제' : '☆ 즐겨찾기';
+      favoriteButton.disabled = favoriteSaving || Boolean(favoriteUser && (favoriteLoading || !favoriteReady));
+    }
+    function renderFavorites() {
+      if (!favoritesVisible) return;
+      const grid = document.querySelector('#favorites-recipes');
+      const status = document.querySelector('#favorites-status');
+      grid.replaceChildren();
+      grid.setAttribute('aria-busy', String(favoriteLoading));
+      if (!favoriteUser) { status.textContent = '로그인하면 즐겨찾기를 저장할 수 있어요'; return; }
+      if (favoriteLoading) { status.textContent = '즐겨찾기를 불러오는 중이에요…'; return; }
+      if (!favoriteReady) { status.textContent = '즐겨찾기를 불러오지 못했어요. 상단의 내 즐겨찾기를 눌러 다시 시도해 주세요.'; return; }
+      if (!loaded) { status.textContent = '레시피 데이터를 불러오는 중이에요…'; return; }
+      const matches = data.recipes.filter(recipe => favoriteIds.has(String(recipe.id)));
+      status.textContent = matches.length ? `저장한 메뉴 ${matches.length}개` : '아직 저장한 레시피가 없어요. 메뉴 상세에서 ☆을 눌러보세요.';
+      grid.replaceChildren(...matches.map(createRecipeCard));
+    }
+    async function loadFavorites() {
+      if (!favoriteUser || !favoriteClient || favoriteSaving) return;
+      const userId = favoriteUser.id;
+      const version = favoriteVersion;
+      const request = ++favoriteRequest;
+      favoriteLoading = true;
+      updateFavoriteButton();
+      renderFavorites();
+      try {
+        const { data: rows, error } = await favoriteClient.from('favorites').select('recipe_id').eq('user_id', userId);
+        if (error) throw error;
+        if (version !== favoriteVersion || request !== favoriteRequest) return;
+        favoriteIds = new Set(rows.map(row => String(row.recipe_id)));
+        favoriteReady = true;
+      } catch (error) {
+        if (version !== favoriteVersion || request !== favoriteRequest) return;
+        favoriteReady = false;
+        favoriteMessage('즐겨찾기를 불러오지 못했어요. 상단의 내 즐겨찾기를 눌러 다시 시도해 주세요.', true);
+      } finally {
+        if (version === favoriteVersion && request === favoriteRequest) {
+          favoriteLoading = false;
+          updateFavoriteButton();
+          renderFavorites();
+        }
+      }
+    }
+    function setFavoriteSession(session, client) {
+      favoriteClient = client;
+      const nextUser = session?.user || null;
+      if (nextUser?.id === favoriteUser?.id) return;
+      favoriteVersion++;
+      favoriteRequest++;
+      favoriteUser = nextUser;
+      favoriteIds = new Set();
+      favoriteReady = false;
+      favoriteLoading = Boolean(nextUser);
+      favoriteSaving = false;
+      favoriteMessage('');
+      updateFavoriteButton();
+      renderFavorites();
+      // Start database requests outside Supabase's auth event callback.
+      if (nextUser) setTimeout(() => loadFavorites(), 0);
+    }
+    favoritesButton.addEventListener('click', () => {
+      favoritesVisible = true;
+      document.querySelector('#browse-view').hidden = true;
+      document.querySelector('#favorites-view').hidden = false;
+      renderFavorites();
+      if (favoriteUser) loadFavorites();
+    });
+    document.querySelector('#browse-button').addEventListener('click', () => {
+      favoritesVisible = false;
+      document.querySelector('#favorites-view').hidden = true;
+      document.querySelector('#browse-view').hidden = false;
+    });
+    favoriteButton.addEventListener('click', async () => {
+      if (!favoriteUser) { favoriteMessage('로그인하면 즐겨찾기를 저장할 수 있어요'); return; }
+      if (!currentRecipe || currentRecipe.id == null || !favoriteReady || favoriteLoading || favoriteSaving) return;
+      const recipe = currentRecipe;
+      const version = favoriteVersion;
+      const userId = favoriteUser.id;
+      const key = String(recipe.id);
+      const saved = favoriteIds.has(key);
+      favoriteSaving = true;
+      updateFavoriteButton();
+      favoriteMessage('');
+      try {
+        const result = saved
+          ? await favoriteClient.from('favorites').delete().eq('user_id', userId).eq('recipe_id', recipe.id).select('recipe_id')
+          : await favoriteClient.from('favorites').insert({ recipe_id: recipe.id }).select('recipe_id');
+        if (version !== favoriteVersion) return;
+        if (result.error) throw result.error;
+        if (!result.data?.length) throw new Error('Favorite change not confirmed');
+        if (saved) favoriteIds.delete(key); else favoriteIds.add(key);
+        renderFavorites();
+        if (currentRecipe === recipe) favoriteMessage(saved ? '즐겨찾기에서 삭제했어요.' : '즐겨찾기에 저장했어요.');
+      } catch (error) {
+        if (version !== favoriteVersion) return;
+        if (error.code === '23505') {
+          favoriteSaving = false;
+          await loadFavorites();
+        } else if (currentRecipe === recipe) {
+          favoriteMessage('즐겨찾기를 변경하지 못했어요. 잠시 후 다시 시도해 주세요.', true);
+        }
+      } finally {
+        if (version === favoriteVersion) { favoriteSaving = false; updateFavoriteButton(); }
+      }
+    });
     const randomButton = document.querySelector('#random-button');
     function pickRandomRecipes(allRecipes, limit = 10) {
       const seen = new Set();
@@ -86,6 +225,9 @@
     const dialog = document.querySelector('#recipe-dialog');
     let lastCard = null;
     function openRecipe(recipe, card) {
+      currentRecipe = recipe;
+      favoriteMessage('');
+      updateFavoriteButton();
       lastCard = card;
       document.querySelector('#detail-name').textContent = recipe.name || '이름 없는 메뉴';
       document.querySelector('#detail-category').textContent = recipe.category || '등록된 요리종류가 없어요';
@@ -270,6 +412,7 @@
         data = result;
         loaded = true;
         renderMonth();
+        renderFavorites();
         randomButton.disabled = false;
       } catch (error) {
         ingredients.textContent = '재료를 불러오지 못했어요.';
@@ -315,6 +458,7 @@
         target.dataset.error = String(error);
       }
       function renderUser(session) {
+        setFavoriteSession(session, client);
         const email = session?.user?.email;
         $('#login-button').hidden = Boolean(email);
         $('#auth-account').hidden = !email;
